@@ -1,4 +1,4 @@
-<nav class="navbar navbar-inverse">
+<nav class="navbar navbar-default">
   <div class="container">
       <div class="navbar-header">
 
@@ -11,19 +11,17 @@
           </button>
 
           <!-- Branding Image -->
-          <a class="navbar-brand" href="{{ url('/') }}">
-              Khater
+          <a class="navbar-brand" href="{{ url('/index') }}">
+              Store
           </a>
       </div>
 
       <div class="collapse navbar-collapse" id="app-navbar-collapse">
           <!-- Left Side Of Navbar -->
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/">Home</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/posts">Posts</a></li>
+            <li class="active"><a href="/products/index">Products</a></li>
             <li class="nav-item">
-              <a class="nav-link" href="/posts/create">Create post</a>
+              <a class="nav-link" href="/products/create">Add Product</a>
             </li>
           </ul>
 
@@ -40,6 +38,7 @@
                       </a>
 
                       <ul class="dropdown-menu" role="menu">
+                          <li><a href="/dashboard">Dashboard</a></li>
                           <li>
                               <a href="{{ route('logout') }}"
                                   onclick="event.preventDefault();

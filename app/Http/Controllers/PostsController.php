@@ -4,10 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\post;
+use Illuminate\Support\Facades\Storage;
 
 class PostsController extends Controller
 {
-    /**
+
+    public function __construct()
+    {
+        $this->middleware('auth',['except'=>['index','show']]);
+    } 
+
+    /**s
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -47,13 +54,26 @@ class PostsController extends Controller
             'firstname' => 'required',
             'lastname' =>'required',
             'body' => 'required',
+            'post_image' => 'image|nullable|max:1024',
         ]);
 
+        if($request->hasFile('post_image')) {
+            $filenameWithExtension = $request->file('post_image')->getClientOriginalName();
+            $fileName = pathInfo($filenameWithExtension, PATHINFO_FILENAME);
+            $extension = $request->file('post_image')->getClientOriginalExtension();
+            $fileNameStore = $fileName .'_' .time(). '.' .$extension;
+            $path = $request->file('post_image')->storeAS('public/post_image', $fileNameStore);
+        }else{
+            $fileNameStore = 'noImage.jpg';
+        }
+
         $post = new POST;
-        $post -> subject = $request -> input('subject');
-        $post -> firstname = $request -> input('firstname');
-        $post -> lastname = $request -> input('lastname');
-        $post -> body = $request -> input('body');
+        $post -> subject    = $request -> input('subject');
+        $post -> firstname  = $request -> input('firstname');
+        $post -> lastname   = $request -> input('lastname');
+        $post -> body       = $request -> input('body');
+        $post -> user_id    = auth()->user()->id;
+        $post -> post_image = $fileNameStore;
         $post -> save();
 
         return redirect('/posts')->with('success','Done Successfully');
@@ -84,6 +104,10 @@ class PostsController extends Controller
     {
         $post = Post::find($id);
 
+        if(auth()->user()->id !== $post->user_id){
+        return redirect('/posts')->with('error','You are unauthorizd');
+        }
+
         return view('posts.edit')->with('post',$post);
     }
 
@@ -103,10 +127,21 @@ class PostsController extends Controller
             'body'      => 'required',
         ]);
 
+        if($request->hasFile('post_image')) {
+            $filenameWithExtension = $request->file('post_image')->getClientOriginalName();
+            $fileName = pathInfo($filenameWithExtension, PATHINFO_FILENAME);
+            $extension = $request->file('post_image')->getClientOriginalExtension();
+            $fileNameStore = $fileName .'_' .time(). '.' .$extension;
+            $path = $request->file('post_image')->storeAS('public/post_image', $fileNameStore);
+        }
+
         $post = POST::find($id);
         $post -> subject =      $request -> input('subject');
         $post -> firstname =    $request -> input('firstname');
         $post -> lastname =     $request -> input('lastname');
+        if($request->hasfile('post_image')){
+            $post->post_image = $fileNameStore;
+        }
         $post -> body =         $request -> input('body');
         $post -> save();
 
@@ -122,8 +157,16 @@ class PostsController extends Controller
     public function destroy($id)
     {
         $post = POST::find($id);
-        $post -> delete();
 
+        if(auth()->user()->id !== $post->user_id){
+            return redirect('/posts')->with('error','You are unauthorizd');
+        }
+
+        if($post->post_image != 'noImage.jpg') {
+            Storage::delete('public/post_image/'.$post->post_image);
+        }
+
+        $post -> delete();
         return redirect('/posts')->with('success','Done Successfully');
     }
 }
